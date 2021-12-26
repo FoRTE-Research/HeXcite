@@ -1,6 +1,6 @@
 # HeXcite: High-Efficiency eXpanded Coverage for Improved Testing of Executables
 
-This repository contains an AFL-based prototype of **HeXcite**: our ***coverage-preserving*** Coverage-guided Tracing binary fuzzer. 
+This repository contains a prototype of **HeXcite**: our binary fuzzer accelerated by ***coverage-preserving* Coverage-guided Tracing**. HeXcite is built atop of the coverage-guided fuzzer [AFL 2.52b](https://lcamtuf.coredump.cx/afl/), and utilizes the [ZAFL binary rewriting project](https://git.zephyr-software.com/opensrc/zafl) for instrumentation and code transformation. HeXcite currently supports **64-bit non-PIE ELF** binary executables.
 <table>
   <tr>
     <td align=center colspan="2"><div><b>Presented in our paper</b> <a href="https://dl.acm.org/doi/abs/10.1145/3460120.3484787"><i>Same Coverage, Less Bloat: Accelerating Binary-only Fuzzing with Coverage-preserving Coverage-guided Tracing</i></a><br>(2021 ACM SIGSAC Conference on Computer and Communications Security).</td>
@@ -24,6 +24,11 @@ This repository contains an AFL-based prototype of **HeXcite**: our ***coverage-
     <td><i>This software is provided as-is with no warranty.</i></td>
   </tr>
 </table>
+
+<p align="center">
+<img src="hexcite.png" width="600">
+</p>
+
 
 ## INSTALLATION
 #### 1. Download and build ZAFL 
@@ -75,3 +80,17 @@ hexcite-afl -i [/path/to/seeds] -o [/path/to/outdir] [optional_args] \
 	-- [/path/to/target] [target_args]
 ```
 Note that the target supplied does not matter: the *real* target binary will be `c.out` from the ZAFL-generated `oracleDir`.
+
+
+## STATUS SCREEN
+* `calib execs` and `trim execs` - Number of testcase calibration and trimming executions, respectively. Tracing is done for both.
+* `total coverage` - Coverage percentage found (left) over total (right). Unlike UnTracer, this number does *NOT* directly correspond to basic blocks, as HeXcite repurposes UnTracer-style interrupts to reveal finer-grained edge and hit count coverage.
+* `traced / queued` - Ratio of traced versus queued testcases. This ratio should (ideally) be `(traced - total_crashes) : queued`, but will increase as tracing timeouts occur.
+* `trace tmouts (discarded)` - Number of testcases which timed out during tracing. Like AFL, we do not queue these.
+* `no new bits (discarded)` - Number of testcases which were marked coverage-increasing by the oracle but did not actually increase coverage. This should (ideally) be 0.
+* `oracle intrpts` - Number of testcases that triggered UnTracer-style breakpoints (i.e., hit a new basic block or a higher Bucketed Unrolling loop count). This should (ideally) equal the value shown in `hit interrupt (queued)`. 
+* `oracle crashes` - Number of testcases that triggered a Jump Mistargeted critical edge (i.e., hit the critical edge and crashed from being forced to the zero address). This should ideally equal the value shown in `hit mistarget (queued)`.
+
+#
+<p align=center> <a href="https://www.cs.vt.edu"><img border="0" src="http://people.cs.vt.edu/snagy2/img/vt_inline_computer_science.png" width="60%" height="60%">
+</a> </p>
